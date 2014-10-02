@@ -172,7 +172,6 @@ def main():
 #  * take cmdline engine arg into account, and submit job accordingly
 
 def attempt_dispatch(expt_config, expt_dir, chooser, executor, options):
-    logging.info("\n" + "-" * 40)
     expt = load_experiment(expt_config)
 
     # Build the experiment grid.
@@ -246,7 +245,7 @@ def attempt_dispatch(expt_config, expt_dir, chooser, executor, options):
             (job_id, candidate) = job_id
             job_id = expt_grid.add_to_grid(candidate)
 
-        logging.info("selected job %d from the grid." % (job_id))
+        logging.info("selected job %d from the grid", job_id)
 
         # Convert this back into an interpretable job and add metadata.
         job = Job()
@@ -261,7 +260,7 @@ def attempt_dispatch(expt_config, expt_dir, chooser, executor, options):
         save_job(job)
         pid = executor.submit_job(job)
         if pid != None:
-            logging.info("submitted - pid = %d" % (pid))
+            logging.info("submitted - pid = %d", pid)
             expt_grid.set_submitted(job_id, pid)
         else:
             logging.info("Failed to submit job!")
