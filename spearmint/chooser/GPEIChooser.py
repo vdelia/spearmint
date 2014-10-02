@@ -34,6 +34,7 @@ import cPickle
 from Locker  import *
 from helpers import *
 
+import logging
 
 def init(expt_dir, arg_string):
     args = util.unpack_args(arg_string)
@@ -145,8 +146,9 @@ class GPEIChooser:
             for mcmc_iter in xrange(self.mcmc_iters):
 
                 self.sample_hypers(comp, vals)
-                log("mean: %f  amp: %f  noise: %f  min_ls: %f  max_ls: %f"
-                                 % (self.mean, np.sqrt(self.amp2), self.noise, np.min(self.ls), np.max(self.ls)))
+                logging.info("mean: %f  amp: %f  noise: %f  min_ls: %f  max_ls: %f",
+                                 self.mean, np.sqrt(self.amp2), self.noise, 
+                                 np.min(self.ls), np.max(self.ls))
 
                 overall_ei[:,mcmc_iter] = self.compute_ei(comp, pend, cand, vals)
 
@@ -165,9 +167,9 @@ class GPEIChooser:
                 self.amp2 = np.std(vals)
                 # Initial observation noise.
                 self.noise = 1e-3
-            log("mean: %f  amp: %f  noise: %f  min_ls: %f  max_ls: %f"
-                             % (self.mean, np.sqrt(self.amp2), self.noise, np.min(self.ls),
-                                np.max(self.ls)))
+            logging.info("mean: %f  amp: %f  noise: %f  min_ls: %f  max_ls: %f",
+                             self.mean, np.sqrt(self.amp2), self.noise, np.min(self.ls),
+                                np.max(self.ls))
 
             ei = self.compute_ei(comp, pend, cand, vals)
 

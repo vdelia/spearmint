@@ -7,13 +7,6 @@ from google.protobuf import text_format
 from spearmint_pb2   import *
 
 
-def log(*args):
-    '''Write a msg to stderr.'''
-    for v in args:
-        sys.stderr.write(str(v))
-    sys.stderr.write("\n")
-
-
 def sh(cmd):
     '''Run a shell command (blocking until completion).'''
     subprocess.check_call(cmd, shell=True)

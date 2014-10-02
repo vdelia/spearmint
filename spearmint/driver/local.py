@@ -2,9 +2,11 @@ import os
 import multiprocessing
 
 from dispatch import DispatchDriver
-from helpers  import *
+from helpers  import grid_for
 from runner   import job_runner
 from Locker   import Locker
+
+import logging
 
 class LocalDriver(DispatchDriver):
     def submit_job(self, job):
@@ -20,12 +22,12 @@ class LocalDriver(DispatchDriver):
        proc.start()
 
        if proc.is_alive():
-           log("Submitted job as process: %d" % proc.pid)
+           logging.info("Submitted job as process: %d", proc.pid)
            return proc.pid
        else:
-           log("Failed to submit job or job crashed "
-               "with return code %d !" % proc.exitcode)
-           log("Deleting job file.")
+           logging.error("Failed to submit job or job crashed "
+               "with return code %d !", proc.exitcode)
+           logging.error("Deleting job file.")
            os.unlink(job_file_for(job))
            return None
 

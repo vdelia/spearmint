@@ -35,6 +35,7 @@ import multiprocessing
 
 from helpers import *
 from Locker  import *
+import logging
 
 def optimize_pt(c, b, comp, pend, vals, model):
     ret = spo.fmin_l_bfgs_b(model.grad_optimize_ei_over_hypers,
@@ -243,11 +244,11 @@ class GPEIOptChooser:
             if self.needs_burnin:
                 for mcmc_iter in xrange(self.burnin):
                     self.sample_hypers(comp, vals)
-                    log("BURN %d/%d] mean: %.2f  amp: %.2f "
-                                     "noise: %.4f  min_ls: %.4f  max_ls: %.4f"
-                                     % (mcmc_iter+1, self.burnin, self.mean,
+                    logging.info("BURN %d/%d] mean: %.2f  amp: %.2f "
+                                     "noise: %.4f  min_ls: %.4f  max_ls: %.4f",
+                                     mcmc_iter+1, self.burnin, self.mean,
                                         np.sqrt(self.amp2), self.noise,
-                                        np.min(self.ls), np.max(self.ls)))
+                                        np.min(self.ls), np.max(self.ls))
                 self.needs_burnin = False
 
             # Sample from hyperparameters.
@@ -255,11 +256,11 @@ class GPEIOptChooser:
             self.hyper_samples = []
             for mcmc_iter in xrange(self.mcmc_iters):
                 self.sample_hypers(comp, vals)
-                log("%d/%d] mean: %.2f  amp: %.2f  noise: %.4f "
-                                 "min_ls: %.4f  max_ls: %.4f"
-                                 % (mcmc_iter+1, self.mcmc_iters, self.mean,
+                logging.info("%d/%d] mean: %.2f  amp: %.2f  noise: %.4f "
+                                 "min_ls: %.4f  max_ls: %.4f",
+                                    mcmc_iter+1, self.mcmc_iters, self.mean,
                                     np.sqrt(self.amp2), self.noise,
-                                    np.min(self.ls), np.max(self.ls)))
+                                    np.min(self.ls), np.max(self.ls))
             self.dump_hypers()
 
             b = []# optimization bounds
@@ -281,8 +282,8 @@ class GPEIOptChooser:
             else:
                 # This is old code to optimize each point in parallel.
                 for i in xrange(0, cand2.shape[0]):
-                    log("Optimizing candidate %d/%d" %
-                        (i+1, cand2.shape[0]))
+                    logging.info("Optimizing candidate %d/%d", i+1, 
+                            cand2.shape[0])
                     #self.check_grad_ei(cand2[i,:].flatten(), comp, pend, vals)
                     ret = spo.fmin_l_bfgs_b(self.grad_optimize_ei_over_hypers,
                                             cand2[i,:].flatten(), args=(comp,pend,vals),
@@ -302,10 +303,10 @@ class GPEIOptChooser:
             # Optimize hyperparameters
             self.optimize_hypers(comp, vals)
 
-            log("mean: %.2f  amp: %.2f  noise: %.4f  "
-                             "min_ls: %.4f  max_ls: %.4f"
-                             % (self.mean, np.sqrt(self.amp2), self.noise,
-                                np.min(self.ls), np.max(self.ls)))
+            logging.info("mean: %.2f  amp: %.2f  noise: %.4f  "
+                             "min_ls: %.4f  max_ls: %.4f", 
+                             self.mean, np.sqrt(self.amp2), self.noise,
+                            np.min(self.ls), np.max(self.ls))
 
             # Optimize over EI
             b = []# optimization bounds

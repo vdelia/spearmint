@@ -32,6 +32,8 @@ from Locker        import *
 from sobol_lib     import *
 from helpers       import *
 
+import logging
+
 CANDIDATE_STATE = 0
 SUBMITTED_STATE = 1
 RUNNING_STATE   = 2
@@ -49,10 +51,10 @@ class ExperimentGrid:
 
     @staticmethod
     def job_complete(expt_dir, id, value, duration):
-        log("setting job %d complete" % id)
+        logging.info("setting job %d complete", id)
         expt_grid = ExperimentGrid(expt_dir)
         expt_grid.set_complete(id, value, duration)
-        log("set...")
+        logging.info("set...")
 
     @staticmethod
     def job_broken(expt_dir, id):
@@ -226,7 +228,7 @@ class GridMap:
                                         'options' : list(variable.options)})
             else:
                 raise Exception("Unknown parameter type.")
-        log("Optimizing over %d dimensions\n" % (self.cardinality))
+        logging.info("Optimizing over %d dimensions", self.cardinality)
 
     def get_params(self, u):
         if u.shape[0] != self.cardinality:

@@ -34,6 +34,8 @@ import cPickle
 from helpers import *
 from Locker  import *
 
+import logging
+
 def init(expt_dir, arg_string):
     args = util.unpack_args(arg_string)
     return GPEIperSecChooser(expt_dir, **args)
@@ -187,11 +189,11 @@ class GPEIperSecChooser:
             if self.needs_burnin:
                 for mcmc_iter in xrange(self.burnin):
                     self.sample_hypers(comp, vals, durs)
-                    log("BURN %d/%d] mean: %.2f  amp: %.2f "
-                                     "noise: %.4f  min_ls: %.4f  max_ls: %.4f"
-                                     % (mcmc_iter+1, self.burnin, self.mean,
+                    logging.info("BURN %d/%d] mean: %.2f  amp: %.2f "
+                                     "noise: %.4f  min_ls: %.4f  max_ls: %.4f",
+                                     mcmc_iter+1, self.burnin, self.mean,
                                         np.sqrt(self.amp2), self.noise,
-                                        np.min(self.ls), np.max(self.ls)))
+                                        np.min(self.ls), np.max(self.ls))
                 self.needs_burnin = False
 
             # Sample from hyperparameters.
@@ -199,17 +201,17 @@ class GPEIperSecChooser:
             self.hyper_samples = []
             for mcmc_iter in xrange(self.mcmc_iters):
                 self.sample_hypers(comp, vals, durs)
-                log("%d/%d] mean: %.2f  amp: %.2f  noise: %.4f "
-                                 "min_ls: %.4f  max_ls: %.4f"
-                                 % (mcmc_iter+1, self.mcmc_iters, self.mean,
+                logging.info("%d/%d] mean: %.2f  amp: %.2f  noise: %.4f "
+                                 "min_ls: %.4f  max_ls: %.4f",
+                                 mcmc_iter+1, self.mcmc_iters, self.mean,
                                     np.sqrt(self.amp2), self.noise,
-                                    np.min(self.ls), np.max(self.ls)))
+                                    np.min(self.ls), np.max(self.ls))
 
-                log("%d/%d] time_mean: %.2fs time_amp: %.2f  time_noise: %.4f "
-                                 "time_min_ls: %.4f  time_max_ls: %.4f"
-                                 % (mcmc_iter+1, self.mcmc_iters, np.exp(self.time_mean),
+                logging.info("%d/%d] time_mean: %.2fs time_amp: %.2f  time_noise: %.4f "
+                                 "time_min_ls: %.4f  time_max_ls: %.4f",
+                                 mcmc_iter+1, self.mcmc_iters, np.exp(self.time_mean),
                                     np.sqrt(self.time_amp2), np.exp(self.time_noise),
-                                    np.min(self.time_ls), np.max(self.time_ls)))
+                                    np.min(self.time_ls), np.max(self.time_ls))
             self.dump_hypers()
 
             # Pick the top candidates to optimize over
@@ -223,8 +225,7 @@ class GPEIperSecChooser:
                 b.append((0, 1))
 
             for i in xrange(0, cand2.shape[0]):
-                log("Optimizing candidate %d/%d" %
-                                 (i+1, cand2.shape[0]))
+                logging.info("Optimizing candidate %d/%d", i+1, cand2.shape[0])
                 ret = spo.fmin_l_bfgs_b(self.grad_optimize_ei_over_hypers,
                                         cand2[i,:].flatten(),
                                         args=(comp,vals,durs,True),
@@ -245,10 +246,9 @@ class GPEIperSecChooser:
             # Optimize hyperparameters
             self.optimize_hypers(comp, vals, durs)
 
-            log("mean: %f  amp: %f  noise: %f "
-                             "min_ls: %f  max_ls: %f"
-                             % (self.mean, np.sqrt(self.amp2),
-                                self.noise, np.min(self.ls), np.max(self.ls)))
+            logging.info("mean: %f  amp: %f  noise: %f min_ls: %f  max_ls: %f",  
+                    self.mean, np.sqrt(self.amp2),
+                    self.noise, np.min(self.ls), np.max(self.ls))
 
             # Pick the top candidates to optimize over
             ei = self.compute_ei_per_s(comp, pend, cand2, vals, durs)
@@ -261,8 +261,7 @@ class GPEIperSecChooser:
                 b.append((0, 1))
 
             for i in xrange(0, cand2.shape[0]):
-                log("Optimizing candidate %d/%d" %
-                                 (i+1, cand2.shape[0]))
+                logging.info("Optimizing candidate %d/%d", i+1, cand2.shape[0])
                 ret = spo.fmin_l_bfgs_b(self.grad_optimize_ei,
                                         cand2[i,:].flatten(),
                                         args=(comp,vals,durs,True),
@@ -311,11 +310,7 @@ class GPEIperSecChooser:
             (ei2,tmp) = self.grad_optimize_ei_over_hypers(cand - idx, comp, vals, durs)
             dx2[i] = (ei - ei2)/(2*1e-6)
             idx[i] = 0
-        print 'computed grads', dx1
-        print 'finite diffs', dx2
-        print (dx1/dx2)
-        print np.sum((dx1 - dx2)**2)
-        time.sleep(2)
+       time.sleep(2)
 
     # Adjust points by optimizing EI over a set of hyperparameter samples
     def grad_optimize_ei_over_hypers(self, cand, comp, vals, durs, compute_grad=True):

@@ -38,6 +38,8 @@ import copy
 from helpers import *
 from Locker  import *
 
+import logging
+
 # Wrapper function to pass to parallel ei optimization calls
 def optimize_pt(c, b, comp, pend, vals, labels, model):
     ret = spo.fmin_l_bfgs_b(model.grad_optimize_ei_over_hypers,
@@ -252,11 +254,11 @@ class GPConstrainedEIChooser:
                 for mcmc_iter in xrange(self.burnin):
                     self.sample_constraint_hypers(comp, labels)
                     self.sample_hypers(comp[goodvals,:], vals[goodvals])
-                    log("BURN %d/%d] mean: %.2f  amp: %.2f "
-                                     "noise: %.4f  min_ls: %.4f  max_ls: %.4f"
-                                     % (mcmc_iter+1, self.burnin, self.mean,
+                    logging.info("BURN %d/%d] mean: %.2f  amp: %.2f "
+                                     "noise: %.4f  min_ls: %.4f  max_ls: %.4f",
+                                     mcmc_iter+1, self.burnin, self.mean,
                                         np.sqrt(self.amp2), self.noise,
-                                        np.min(self.ls), np.max(self.ls)))
+                                        np.min(self.ls), np.max(self.ls))
                 self.needs_burnin = False
 
             # Sample from hyperparameters.
@@ -266,24 +268,24 @@ class GPConstrainedEIChooser:
                 self.sample_constraint_hypers(comp, labels)
                 self.sample_hypers(comp[goodvals,:], vals[goodvals])
                 if self.verbosity > 0:
-                    log("%d/%d] mean: %.2f  amp: %.2f noise: %.4f "
-                                     "min_ls: %.4f  max_ls: %.4f"
-                                     % (mcmc_iter+1, self.mcmc_iters, self.mean,
+                    logging.info("%d/%d] mean: %.2f  amp: %.2f noise: %.4f "
+                                     "min_ls: %.4f  max_ls: %.4f",
+                                     mcmc_iter+1, self.mcmc_iters, self.mean,
                                         np.sqrt(self.amp2), self.noise,
-                                        np.min(self.ls), np.max(self.ls)))
+                                        np.min(self.ls), np.max(self.ls))
 
-                    log("%d/%d] constraint_mean: %.2f "
+                    logging.info("%d/%d] constraint_mean: %.2f "
                                      "constraint_amp: %.2f "
                                      "constraint_gain: %.4f "
                                      "constraint_min_ls: %.4f "
                                      "constraint_max_ls: "
-                                     "%.4f"
-                                     % (mcmc_iter+1, self.mcmc_iters,
+                                     "%.4f",
+                                     mcmc_iter+1, self.mcmc_iters,
                                         self.constraint_mean,
                                         np.sqrt(self.constraint_amp2),
                                         self.constraint_gain,
                                         np.min(self.constraint_ls),
-                                        np.max(self.constraint_ls)))
+                                        np.max(self.constraint_ls))
             self.dump_hypers()
             comp_preds = np.zeros(labels.shape[0]).flatten()
 
@@ -298,10 +300,10 @@ class GPConstrainedEIChooser:
                 comp_preds += self.pred_constraint_voilation(comp, comp,
                                                              labels).flatten()
             comp_preds = comp_preds / float(self.mcmc_iters)
-            print 'Predicting %.2f%% constraint violations (%d/%d): ' % (
+            logging.info('Predicting %.2f%% constraint violations (%d/%d): ',
             np.mean(preds < 0.5)*100, np.sum(preds < 0.5), preds.shape[0])
             if self.verbosity > 0:
-                print 'Prediction` %f%% train accuracy (%d/%d): ' % (
+                logging.info('Prediction` %f%% train accuracy (%d/%d): ',
                     np.mean((comp_preds > 0.5) == labels),
                     np.sum((comp_preds > 0.5) == labels), comp_preds.shape[0])
 

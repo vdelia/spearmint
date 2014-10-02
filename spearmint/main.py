@@ -31,6 +31,7 @@ import re
 import signal
 import socket
 import driver.local
+import logging
 
 try: import simplejson as json
 except ImportError: import json
@@ -39,6 +40,7 @@ except ImportError: import json
 from ExperimentGrid  import *
 from helpers         import *
 from runner          import job_runner
+
 
 # Use a global for the web process so we can kill it cleanly on exit
 web_proc = None
@@ -136,11 +138,11 @@ def main():
 
     experiment_config = args[0]
     expt_dir  = os.path.dirname(os.path.realpath(experiment_config))
-    log("Using experiment configuration: " + experiment_config)
-    log("experiment dir: " + expt_dir)
+    logging.info("Using experiment configuration: " + experiment_config)
+    logging.info("experiment dir: " + expt_dir)
 
     if not os.path.exists(expt_dir):
-        log("Cannot find experiment directory '%s'. "
+        logging.info("Cannot find experiment directory '%s'. "
             "Aborting." % (expt_dir))
         sys.exit(-1)
 
@@ -170,7 +172,7 @@ def main():
 #  * take cmdline engine arg into account, and submit job accordingly
 
 def attempt_dispatch(expt_config, expt_dir, chooser, executor, options):
-    log("\n" + "-" * 40)
+    logging.info("\n" + "-" * 40)
     expt = load_experiment(expt_config)
 
     # Build the experiment grid.
@@ -182,9 +184,9 @@ def attempt_dispatch(expt_config, expt_dir, chooser, executor, options):
     # Print out the current best function value.
     best_val, best_job = expt_grid.get_best()
     if best_job >= 0:
-        log("Current best: %f (job %d)" % (best_val, best_job))
+        logging.info("Current best: %f (job %d)" % (best_val, best_job))
     else:
-        log("Current best: No results returned yet.")
+        logging.info("Current best: No results returned yet.")
 
     # Gets you everything - NaN for unknown values & durations.
     grid, values, durations = expt_grid.get_grid()
@@ -197,15 +199,15 @@ def attempt_dispatch(expt_config, expt_dir, chooser, executor, options):
     n_candidates = candidates.shape[0]
     n_pending    = pending.shape[0]
     n_complete   = complete.shape[0]
-    log("%d candidates   %d pending   %d complete" %
-        (n_candidates, n_pending, n_complete))
+    logging.info("%d candidates   %d pending   %d complete", n_candidates, 
+            n_pending, n_complete)
 
     # Verify that pending jobs are actually running, and add them back to the
     # candidate set if they have crashed or gotten lost.
     for job_id in pending:
         proc_id = expt_grid.get_proc_id(job_id)
         if not executor.is_proc_alive(job_id, proc_id):
-            log("Set job %d back to pending status." % (job_id))
+            logging.info("Set job %d back to pending status." % (job_id))
             expt_grid.set_candidate(job_id)
 
     # Track the time series of optimization.
@@ -215,27 +217,27 @@ def attempt_dispatch(expt_config, expt_dir, chooser, executor, options):
     write_best_job(expt_dir, best_val, best_job, expt_grid)
 
     if n_complete >= options.max_finished_jobs:
-        log("Maximum number of finished jobs (%d) reached."
+        logging.info("Maximum number of finished jobs (%d) reached."
                          "Exiting" % options.max_finished_jobs)
         return False
 
     if n_candidates == 0:
-        log("There are no candidates left.  Exiting.")
+        logging.info("There are no candidates left.  Exiting.")
         return False
 
     if n_pending >= options.max_concurrent:
-        log("Maximum number of jobs (%d) pending." % (options.max_concurrent))
+        logging.info("Maximum number of jobs (%d) pending." % (options.max_concurrent))
         return True
 
     else:
 
         # start a bunch of candidate jobs if possible
         #to_start = min(options.max_concurrent - n_pending, n_candidates)
-        #log("Trying to start %d jobs" % (to_start))
+        #logging.info("Trying to start %d jobs" % (to_start))
         #for i in xrange(to_start):
 
         # Ask the chooser to pick the next candidate
-        log("Choosing next candidate... ")
+        logging.info("Choosing next candidate... ")
         job_id = chooser.next(grid, values, durations, candidates, pending, complete)
 
         # If the job_id is a tuple, then the chooser picked a new job.
@@ -244,7 +246,7 @@ def attempt_dispatch(expt_config, expt_dir, chooser, executor, options):
             (job_id, candidate) = job_id
             job_id = expt_grid.add_to_grid(candidate)
 
-        log("selected job %d from the grid." % (job_id))
+        logging.info("selected job %d from the grid." % (job_id))
 
         # Convert this back into an interpretable job and add metadata.
         job = Job()
@@ -259,11 +261,11 @@ def attempt_dispatch(expt_config, expt_dir, chooser, executor, options):
         save_job(job)
         pid = executor.submit_job(job)
         if pid != None:
-            log("submitted - pid = %d" % (pid))
+            logging.info("submitted - pid = %d" % (pid))
             expt_grid.set_submitted(job_id, pid)
         else:
-            log("Failed to submit job!")
-            log("Deleting job file.")
+            logging.info("Failed to submit job!")
+            logging.info("Deleting job file.")
             os.unlink(job_file_for(job))
 
     return True
@@ -299,17 +301,8 @@ def check_experiment_dirs(expt_dir):
     job_subdir = os.path.join(expt_dir, 'jobs')
     check_dir(job_subdir)
 
-# Cleanup locks and processes on ctl-c
-def sigint_handler(signal, frame):
-    if web_proc:
-        print "closing web server...",
-        web_proc.terminate()
-        print "done"
-    sys.exit(0)
-
-
 if __name__=='__main__':
-    print "setting up signal handler..."
-    signal.signal(signal.SIGINT, sigint_handler)
+    FORMAT = '%(asctime)-15s %(process)d %(module)s %(levelname)s %(message)s'
+    logging.basicConfig(format=FORMAT, level=logging.DEBUG)
     main()
 
