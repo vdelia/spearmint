@@ -30,6 +30,7 @@ import sys
 import re
 import signal
 import socket
+import driver.local
 
 try: import simplejson as json
 except ImportError: import json
@@ -69,9 +70,6 @@ def parse_args():
     parser.add_option("--method", dest="chooser_module",
                       help="Method for choosing experiments [SequentialChooser, RandomChooser, GPEIOptChooser, GPEIOptChooser, GPEIperSecChooser, GPEIChooser]",
                       type="string", default="GPEIOptChooser")
-    parser.add_option("--driver", dest="driver",
-                      help="Runtime driver for jobs (local, or sge)",
-                      type="string", default="local")
     parser.add_option("--method-args", dest="chooser_args",
                       help="Arguments to pass to chooser module.",
                       type="string", default="")
@@ -156,11 +154,10 @@ def main():
         web_proc = start_web_view(options, experiment_config, chooser)
 
     # Load up the job execution driver.
-    module = importlib.import_module('driver.' + options.driver)
-    driver = module.init()
+    executor = driver.local.init()
 
     # Loop until we run out of jobs.
-    while attempt_dispatch(experiment_config, expt_dir, chooser, driver, options):
+    while attempt_dispatch(experiment_config, expt_dir, chooser, executor, options):
         # This is polling frequency. A higher frequency means that the algorithm
         # picks up results more quickly after they finish, but also significantly
         # increases overhead.
