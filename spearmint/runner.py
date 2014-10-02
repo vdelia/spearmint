@@ -39,13 +39,7 @@ def job_runner(job):
     start_time = time.time()
 
     try:
-        if job.language == MATLAB:   run_matlab_job(job)
-        elif job.language == PYTHON: run_python_job(job)
-        elif job.language == SHELL:  run_torch_job(job)
-        elif job.language == MCR:    run_mcr_job(job)
-        else:
-            raise Exception("That function type has not been implemented.")
-
+        run_python_job(job)
         success = True
     except:
         logger.error("Problem running the job:")
