@@ -1,13 +1,13 @@
-language: PYTHON
-name:     "branin"
+language= "PYTHON"
+name=     "branin"
 
-variable {
- name: "X"
- type: FLOAT
- size: 2
- min:  0
- max:  1
-}
+variables = [{
+ "name": "X",
+ "type": "float",
+ "size": 2,
+ "min":  0,
+ "max":  1
+}]
 
 # Integer example
 #

@@ -5,7 +5,7 @@ import tempfile
 
 from google.protobuf import text_format
 from spearmint_pb2   import *
-
+import imp
 
 def sh(cmd):
     '''Run a shell command (blocking until completion).'''
@@ -44,10 +44,7 @@ def save_experiment(filename, expt):
 
 
 def load_experiment(filename):
-    fh = open(filename, 'rb')
-    expt = Experiment()
-    text_format.Merge(fh.read(), expt)
-    fh.close()
+    expt = imp.load_source("_experiment_settings_", filename)
     return expt
 
 

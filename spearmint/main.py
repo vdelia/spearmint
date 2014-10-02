@@ -176,7 +176,7 @@ def attempt_dispatch(expt_config, expt_dir, chooser, executor, options):
 
     # Build the experiment grid.
     expt_grid = ExperimentGrid(expt_dir,
-                               expt.variable,
+                               expt.variables,
                                options.grid_size,
                                options.grid_seed)
 
@@ -252,7 +252,7 @@ def attempt_dispatch(expt_config, expt_dir, chooser, executor, options):
         job.id        = job_id
         job.expt_dir  = expt_dir
         job.name      = expt.name
-        job.language  = expt.language
+        job.language  = 1
         job.status    = 'submitted'
         job.submit_t  = int(time.time())
         job.param.extend(expt_grid.get_params(job_id))

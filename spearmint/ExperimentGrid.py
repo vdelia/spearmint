@@ -197,7 +197,21 @@ class ExperimentGrid:
 
         return sobol_grid
 
-class GridMap:
+class GridMap():
+
+    valid_types = set(["int", "float", "enum"])
+    min_max_validators = {"int" : int, "float": float}
+
+    def accept_variable(self, variable):
+        validator = GridMap.min_max_validators.get(variable["type"], None)
+        assert variable["type"] in GridMap.valid_types
+        
+        new_variable = dict(variable)
+            
+        if validator is not None:
+            new_variable["min"] = validator(new_variable["min"])
+            new_variable["max"] = validator(new_variable["max"])
+        return new_variable
 
     def __init__(self, variables, grid_size):
         self.variables   = []
@@ -205,29 +219,10 @@ class GridMap:
 
         # Count the total number of dimensions and roll into new format.
         for variable in variables:
-            self.cardinality += variable.size
+            self.cardinality += variable["size"]
+            variable = self.accept_variable(variable)
+            self.variables.append(variable)
 
-            if variable.type == Experiment.ParameterSpec.INT:
-                self.variables.append({ 'name' : variable.name,
-                                        'size' : variable.size,
-                                        'type' : 'int',
-                                        'min'  : int(variable.min),
-                                        'max'  : int(variable.max)})
-
-            elif variable.type == Experiment.ParameterSpec.FLOAT:
-                self.variables.append({ 'name' : variable.name,
-                                        'size' : variable.size,
-                                        'type' : 'float',
-                                        'min'  : float(variable.min),
-                                        'max'  : float(variable.max)})
-
-            elif variable.type == Experiment.ParameterSpec.ENUM:
-                self.variables.append({ 'name'    : variable.name,
-                                        'size'    : variable.size,
-                                        'type'    : 'enum',
-                                        'options' : list(variable.options)})
-            else:
-                raise Exception("Unknown parameter type.")
         logging.info("Optimizing over %d dimensions", self.cardinality)
 
     def get_params(self, u):
