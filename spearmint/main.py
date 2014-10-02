@@ -169,7 +169,7 @@ def main():
 #  driver classes to handle local execution and SGE execution.
 #  * take cmdline engine arg into account, and submit job accordingly
 
-def attempt_dispatch(expt_config, expt_dir, chooser, driver, options):
+def attempt_dispatch(expt_config, expt_dir, chooser, executor, options):
     log("\n" + "-" * 40)
     expt = load_experiment(expt_config)
 
@@ -204,7 +204,7 @@ def attempt_dispatch(expt_config, expt_dir, chooser, driver, options):
     # candidate set if they have crashed or gotten lost.
     for job_id in pending:
         proc_id = expt_grid.get_proc_id(job_id)
-        if not driver.is_proc_alive(job_id, proc_id):
+        if not executor.is_proc_alive(job_id, proc_id):
             log("Set job %d back to pending status." % (job_id))
             expt_grid.set_candidate(job_id)
 
@@ -257,7 +257,7 @@ def attempt_dispatch(expt_config, expt_dir, chooser, driver, options):
         job.param.extend(expt_grid.get_params(job_id))
 
         save_job(job)
-        pid = driver.submit_job(job)
+        pid = executor.submit_job(job)
         if pid != None:
             log("submitted - pid = %d" % (pid))
             expt_grid.set_submitted(job_id, pid)
