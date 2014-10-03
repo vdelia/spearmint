@@ -42,9 +42,6 @@ from helpers         import *
 from runner          import job_runner
 
 
-# Use a global for the web process so we can kill it cleanly on exit
-web_proc = None
-
 # There are two things going on here.  There are "experiments", which are
 # large-scale things that live in a directory and in this case correspond
 # to the task of minimizing a complicated function.  These experiments
@@ -87,12 +84,6 @@ def parse_args():
     parser.add_option("--polling-time", dest="polling_time",
                       help="The time in-between successive polls for results.",
                       type="float", default=3.0)
-    parser.add_option("-w", "--web-status", action="store_true",
-                      help="Serve an experiment status web page.",
-                      dest="web_status")
-    parser.add_option("--port",
-                      help="Specify a port to use for the status web interface.",
-                      dest="web_status_port", type="int", default=0)
     parser.add_option("-v", "--verbose", action="store_true",
                       help="Print verbose debug output.")
 
@@ -111,22 +102,6 @@ def get_available_port(portnum):
     port = sock.getsockname()[1]
     sock.close()
     return port
-
-
-def start_web_view(options, experiment_config, chooser):
-    '''Start the web view in a separate process.'''
-
-    from spearmint.web.app import app    
-    port = get_available_port(options.web_status_port)
-    print "Using port: " + str(port)
-    app.set_experiment_config(experiment_config)
-    app.set_chooser(options.chooser_module,chooser)
-    debug = (options.verbose == True)
-    start_web_app = lambda: app.run(debug=debug, port=port)
-    proc = multiprocessing.Process(target=start_web_app)
-    proc.start()
-
-    return proc
 
 
 def main():
@@ -151,9 +126,6 @@ def main():
     # Load up the chooser module.
     module  = importlib.import_module('chooser.' + options.chooser_module)
     chooser = module.init(expt_dir, options.chooser_args)
-
-    if options.web_status:
-        web_proc = start_web_view(options, experiment_config, chooser)
 
     # Load up the job execution driver.
     executor = driver.local.init()
