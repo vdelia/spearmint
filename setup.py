@@ -12,7 +12,7 @@ setup(
     package_data = {
         # If any package contains *.txt or *.rst files, include them:
         # avro is for fixtures in test env
-        '': ['*.txt', '*.rst', '*.cfg', '*.md', '*.avsc', '*avro'],
+        '': ['*.txt', '*.rst', '*.cfg', '*.md'],
     },
 )
 
