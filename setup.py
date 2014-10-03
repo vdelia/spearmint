@@ -1,9 +1,9 @@
 from setuptools import setup, find_packages
 
 setup(
-    name='value_search_optimizer',
+    name='spearmint-tiny',
     version = '0.1',
-    description='Spearmint',
+    description='Tiny version of Spearmint',
     author='Vincenzo D\'Elia',
     author_email='vince.delia@gmail.com',
     packages = find_packages(),
