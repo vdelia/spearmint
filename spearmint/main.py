@@ -95,15 +95,6 @@ def parse_args():
 
     return options, args
 
-
-def get_available_port(portnum):
-    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    sock.bind(('localhost', portnum))
-    port = sock.getsockname()[1]
-    sock.close()
-    return port
-
-
 def main():
     (options, args) = parse_args()
 
