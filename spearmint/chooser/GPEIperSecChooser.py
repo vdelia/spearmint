@@ -32,7 +32,6 @@ import scipy.optimize as spo
 import cPickle
 
 from helpers import *
-from Locker  import *
 
 import logging
 
@@ -54,7 +53,6 @@ class GPEIperSecChooser:
                  pending_samples=100, noiseless=False, burnin=100,
                  grid_subset=20):
         self.cov_func        = getattr(gp, covar)
-        self.locker          = Locker()
         self.state_pkl       = os.path.join(expt_dir, self.__module__ + ".pkl")
 
         self.stats_file      = os.path.join(expt_dir,
@@ -82,7 +80,6 @@ class GPEIperSecChooser:
     # A simple function to dump out hyperparameters to allow for a hot start
     # if the optimization is restarted.
     def dump_hypers(self):
-        self.locker.lock_wait(self.state_pkl)
 
         # Write the hyperparameters out to a Pickle.
         fh = tempfile.NamedTemporaryFile(mode='w', delete=False)
@@ -102,10 +99,7 @@ class GPEIperSecChooser:
         cmd = 'mv "%s" "%s"' % (fh.name, self.state_pkl)
         os.system(cmd) # TODO: Should check system-dependent return status.
 
-        self.locker.unlock(self.state_pkl)
-
     def _real_init(self, dims, values, durations):
-        self.locker.lock_wait(self.state_pkl)
 
         if os.path.exists(self.state_pkl):
             fh    = open(self.state_pkl, 'r')
@@ -142,7 +136,6 @@ class GPEIperSecChooser:
             self.mean = np.mean(values)
             self.time_mean = np.mean(np.log(durations))
 
-        self.locker.unlock(self.state_pkl)
 
     def cov(self, amp2, ls, x1, x2=None):
         if x2 is None:

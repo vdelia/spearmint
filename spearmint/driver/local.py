@@ -4,7 +4,6 @@ import multiprocessing
 from dispatch import DispatchDriver
 from helpers  import grid_for
 from runner   import job_runner
-from Locker   import Locker
 
 import logging
 
@@ -13,10 +12,6 @@ class LocalDriver(DispatchDriver):
        '''Submit a job for local execution.'''
 
        name = "%s-%08d" % (job.name, job.id)
-
-       # TODO: figure out if this is necessary....
-       locker = Locker()
-       locker.unlock(grid_for(job))
 
        proc = multiprocessing.Process(target=job_runner, args=[job])
        proc.start()

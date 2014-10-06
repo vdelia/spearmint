@@ -28,7 +28,6 @@ import numpy        as np
 import numpy.random as npr
 
 from spearmint_pb2 import *
-from Locker        import *
 from sobol_lib     import *
 from helpers       import *
 
@@ -64,10 +63,7 @@ class ExperimentGrid:
     def __init__(self, expt_dir, variables=None, grid_size=None, grid_seed=1):
         self.expt_dir = expt_dir
         self.jobs_pkl = os.path.join(expt_dir, EXPERIMENT_GRID_FILE)
-        self.locker   = Locker()
 
-        # Only one process at a time is allowed to have access to the grid.
-        self.locker.lock_wait(self.jobs_pkl)
 
         # Set up the grid for the first time if it doesn't exist.
         if variables is not None and not os.path.exists(self.jobs_pkl):
@@ -87,10 +83,6 @@ class ExperimentGrid:
 
     def __del__(self):
         self._save_jobs()
-        if self.locker.unlock(self.jobs_pkl):
-            pass
-        else:
-            raise Exception("Could not release lock on job grid.\n")
 
     def get_grid(self):
         return self.grid, self.values, self.durs

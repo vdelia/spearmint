@@ -36,7 +36,6 @@ import multiprocessing
 import copy
 
 from helpers import *
-from Locker  import *
 
 import logging
 
@@ -67,7 +66,6 @@ class GPConstrainedEIChooser:
                  grid_subset=20, constraint_violating_value=np.inf,
                  verbosity=0, visualize2D=False):
         self.cov_func        = getattr(gp, covar)
-        self.locker          = Locker()
         self.state_pkl       = os.path.join(expt_dir, self.__module__ + ".pkl")
 
         self.stats_file      = os.path.join(expt_dir,
@@ -101,7 +99,6 @@ class GPConstrainedEIChooser:
     # A simple function to dump out hyperparameters to allow for a hot start
     # if the optimization is restarted.
     def dump_hypers(self):
-        self.locker.lock_wait(self.state_pkl)
 
         # Write the hyperparameters out to a Pickle.
         fh = tempfile.NamedTemporaryFile(mode='w', delete=False)
@@ -121,7 +118,6 @@ class GPConstrainedEIChooser:
         cmd = 'mv "%s" "%s"' % (fh.name, self.state_pkl)
         os.system(cmd) # TODO: Should check system-dependent return status.
 
-        self.locker.unlock(self.state_pkl)
 
         # Write the hyperparameters out to a human readable file as well
         fh    = open(self.stats_file, 'w')
@@ -143,7 +139,6 @@ class GPConstrainedEIChooser:
 
     def _real_init(self, dims, values, durations):
 
-        self.locker.lock_wait(self.state_pkl)
 
         self.randomstate = npr.get_state()
         if os.path.exists(self.state_pkl):
@@ -189,8 +184,6 @@ class GPConstrainedEIChooser:
             # Initial mean.
             self.mean = np.mean(values[goodvals])
             self.constraint_mean = 0.5
-
-        self.locker.unlock(self.state_pkl)
 
     def cov(self, amp2, ls, x1, x2=None):
         if x2 is None:
