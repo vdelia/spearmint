@@ -40,6 +40,7 @@ class Locker:
             self.unlock(filename)
 
     def lock(self, filename):
+        return True
         if self.locks.has_key(filename):
             self.locks[filename] += 1
             return True
@@ -51,6 +52,7 @@ class Locker:
             return not fail
 
     def unlock(self, filename):
+        return True
         if not self.locks.has_key(filename):
             #sys.stderr.write("Trying to unlock not-locked file %s.\n" % (filename))
             return True
@@ -65,6 +67,7 @@ class Locker:
             return True
 
     def lock_wait(self, filename):
+        return True
         while not self.lock(filename):
           time.sleep(0.01)
 
