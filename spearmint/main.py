@@ -121,8 +121,10 @@ def main():
     # Load up the job execution driver.
     executor = driver.local.init()
 
+    experiment = load_experiment(experiment_config)
+
     # Loop until we run out of jobs.
-    while attempt_dispatch(experiment_config, expt_dir, chooser, executor, options):
+    while attempt_dispatch(experiment, expt_dir, chooser, executor, options):
         # This is polling frequency. A higher frequency means that the algorithm
         # picks up results more quickly after they finish, but also significantly
         # increases overhead.
@@ -134,12 +136,11 @@ def main():
 #  driver classes to handle local execution and SGE execution.
 #  * take cmdline engine arg into account, and submit job accordingly
 
-def attempt_dispatch(expt_config, expt_dir, chooser, executor, options):
-    expt = load_experiment(expt_config)
-
+def attempt_dispatch(experiment, expt_dir, chooser, executor, options):
+    
     # Build the experiment grid.
     expt_grid = ExperimentGrid(expt_dir,
-                               expt.variables,
+                               experiment.variables,
                                options.grid_size,
                                options.grid_seed)
 
@@ -214,7 +215,7 @@ def attempt_dispatch(expt_config, expt_dir, chooser, executor, options):
         job = Job()
         job.id        = job_id
         job.expt_dir  = expt_dir
-        job.name      = expt.name
+        job.name      = experiment.name
         job.language  = 1
         job.status    = 'submitted'
         job.submit_t  = int(time.time())
