@@ -21,15 +21,11 @@
 import optparse
 import tempfile
 import datetime
-import multiprocessing
 import importlib
 import time
 import imp
 import os
 import sys
-import re
-import signal
-import socket
 import driver.local
 import logging
 
