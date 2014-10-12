@@ -117,12 +117,12 @@ def main():
     experiment = load_experiment(experiment_config)
 
     # Loop until we run out of jobs.
-    for current_best, next_values in \
-            attempt_dispatch(experiment, expt_dir, chooser, executor, options):
+    for current_best, next_values, i in \
+            explore_space_of_candidates(experiment, expt_dir, chooser, executor, options):
         # This is polling frequency. A higher frequency means that the algorithm
         # picks up results more quickly after they finish, but also significantly
         # increases overhead.
-        print "looping", current_best, next_values
+        print "looping", current_best, next_values, i
 
 # TODO:
 #  * move check_pending_jobs out of ExperimentGrid, and implement two simple
@@ -130,7 +130,7 @@ def main():
 #  * take cmdline engine arg into account, and submit job accordingly
 
 
-def attempt_dispatch(experiment, expt_dir, chooser, executor, options):
+def explore_space_of_candidates(experiment, expt_dir, chooser, executor, options):
    
     # Build the experiment grid.
     expt_grid = ExperimentGrid(expt_dir,
@@ -166,7 +166,7 @@ def attempt_dispatch(experiment, expt_dir, chooser, executor, options):
         logging.info("Choosing next candidate... ")
         job_id = chooser.next(grid, values, durations, candidates, pending, complete)
 
-        yield best_val, job_id
+        yield best_val, job_id, next_jobid
 
         # If the job_id is a tuple, then the chooser picked a new job.
         # We have to add this to our grid
