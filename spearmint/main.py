@@ -39,7 +39,7 @@ except ImportError: import json
 
 from ExperimentGrid  import *
 from helpers         import *
-from runner          import job_runner
+from runner          import run_python_job
 
 
 # There are two things going on here.  There are "experiments", which are
@@ -121,8 +121,10 @@ def main():
     # Load up the job execution driver.
     executor = driver.local.init()
 
+    experiment = load_experiment(experiment_config)
+
     # Loop until we run out of jobs.
-    while attempt_dispatch(experiment_config, expt_dir, chooser, executor, options):
+    while attempt_dispatch(experiment, expt_dir, chooser, executor, options):
         # This is polling frequency. A higher frequency means that the algorithm
         # picks up results more quickly after they finish, but also significantly
         # increases overhead.
@@ -134,12 +136,12 @@ def main():
 #  driver classes to handle local execution and SGE execution.
 #  * take cmdline engine arg into account, and submit job accordingly
 
-def attempt_dispatch(expt_config, expt_dir, chooser, executor, options):
-    expt = load_experiment(expt_config)
 
+def attempt_dispatch(experiment, expt_dir, chooser, executor, options):
+   
     # Build the experiment grid.
     expt_grid = ExperimentGrid(expt_dir,
-                               expt.variables,
+                               experiment.variables,
                                options.grid_size,
                                options.grid_seed)
 
@@ -152,6 +154,7 @@ def attempt_dispatch(expt_config, expt_dir, chooser, executor, options):
 
     # Gets you everything - NaN for unknown values & durations.
     grid, values, durations = expt_grid.get_grid()
+
 
     # Returns lists of indices.
     candidates = expt_grid.get_candidates()
@@ -187,7 +190,7 @@ def attempt_dispatch(expt_config, expt_dir, chooser, executor, options):
         logging.info("There are no candidates left.  Exiting.")
         return False
 
-    if n_pending >= options.max_concurrent:
+    if n_pending >= 1:#options.max_concurrent:
         logging.info("Maximum number of jobs (%d) pending." % (options.max_concurrent))
         return True
 
@@ -202,6 +205,7 @@ def attempt_dispatch(expt_config, expt_dir, chooser, executor, options):
         logging.info("Choosing next candidate... ")
         job_id = chooser.next(grid, values, durations, candidates, pending, complete)
 
+        
         # If the job_id is a tuple, then the chooser picked a new job.
         # We have to add this to our grid
         if isinstance(job_id, tuple):
@@ -210,25 +214,51 @@ def attempt_dispatch(expt_config, expt_dir, chooser, executor, options):
 
         logging.info("selected job %d from the grid", job_id)
 
+        
         # Convert this back into an interpretable job and add metadata.
         job = Job()
         job.id        = job_id
         job.expt_dir  = expt_dir
-        job.name      = expt.name
-        job.language  = 1
+        job.name      = experiment.name
+        job.language  = 2
         job.status    = 'submitted'
         job.submit_t  = int(time.time())
         job.param.extend(expt_grid.get_params(job_id))
 
         save_job(job)
-        pid = executor.submit_job(job)
-        if pid != None:
-            logging.info("submitted - pid = %d", pid)
-            expt_grid.set_submitted(job_id, pid)
-        else:
-            logging.info("Failed to submit job!")
-            logging.info("Deleting job file.")
-            os.unlink(job_file_for(job))
+        
+        expt_grid.set_submitted(job_id, os.getpid())
+
+        #pid = executor.submit_job(job)
+
+        expt_grid.set_running(job_id)
+        job.start_t = int(time.time())
+        job.status  = 'running'
+        save_job(job)
+
+        run_python_job(job)
+        job.status = 'complete'
+
+        save_job(job)
+        duration = time.time() - job.start_t
+        expt_grid.set_complete(job_id, job.value, duration)
+        job.end_t = int(time.time())
+        job.duration = duration
+        save_job(job)
+        print job
+
+        # 2) job.status = running
+
+        # 3) ExperimentGrid.job_complete(job.expt_dir, job.id,
+        #                            job.value, duration)
+
+        # if pid != None:
+        #     logging.info("submitted - pid = %d", pid)
+        #     expt_grid.set_submitted(job_id, pid)
+        # else:
+        #     logging.info("Failed to submit job!")
+        #     logging.info("Deleting job file.")
+        #     os.unlink(job_file_for(job))
 
     return True
 

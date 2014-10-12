@@ -31,7 +31,6 @@ import scipy.stats    as sps
 import scipy.optimize as spo
 import cPickle
 
-from Locker  import *
 from helpers import *
 
 import logging
@@ -51,7 +50,6 @@ class GPEIChooser:
     def __init__(self, expt_dir, covar="Matern52", mcmc_iters=10,
                  pending_samples=100, noiseless=False):
         self.cov_func        = getattr(gp, covar)
-        self.locker          = Locker()
         self.state_pkl       = os.path.join(expt_dir, self.__module__ + ".pkl")
 
         self.mcmc_iters      = int(mcmc_iters)
@@ -65,7 +63,6 @@ class GPEIChooser:
         self.max_ls      = 2    # top-hat prior on length scales
 
     def __del__(self):
-        self.locker.lock_wait(self.state_pkl)
 
         # Write the hyperparameters out to a Pickle.
         fh = tempfile.NamedTemporaryFile(mode='w', delete=False)
@@ -81,10 +78,8 @@ class GPEIChooser:
         cmd = 'mv "%s" "%s"' % (fh.name, self.state_pkl)
         os.system(cmd) # TODO: Should check system-dependent return status.
 
-        self.locker.unlock(self.state_pkl)
 
     def _real_init(self, dims, values):
-        self.locker.lock_wait(self.state_pkl)
 
         if os.path.exists(self.state_pkl):
             fh    = open(self.state_pkl, 'r')
@@ -113,7 +108,6 @@ class GPEIChooser:
             # Initial mean.
             self.mean = np.mean(values)
 
-        self.locker.unlock(self.state_pkl)
 
     def cov(self, x1, x2=None):
         if x2 is None:

@@ -18,8 +18,6 @@ DEFAULT_MODULES = [ 'packages/epd/7.1-2',
 
 MCR_LOCATION = "/home/matlab/v715" # hack
 
-logger = logging.getLogger(__file__)
-
 def job_runner(job):
     '''This fn runs in a new process.  Now we are going to do a little
     bookkeeping and then spin off the actual job that does whatever it is we're
@@ -42,9 +40,9 @@ def job_runner(job):
         run_python_job(job)
         success = True
     except:
-        logger.error("Problem running the job:")
-        logger.error(sys.exc_info())
-        logger.error(traceback.print_exc(limit=1000))
+        logging.error("Problem running the job:")
+        logging.error(sys.exc_info())
+        logging.error(traceback.print_exc(limit=1000))
 
     end_time = time.time()
     duration = end_time - start_time
@@ -57,7 +55,7 @@ def job_runner(job):
     logging.info("Job file reloaded.")
 
     if not job.HasField("value"):
-        logger.warning("Could not find value in output file.")
+        logging.warning("Could not find value in output file.")
         success = False
 
     if success:

@@ -1,6 +1,5 @@
 from cma import CMAEvolutionStrategy
 from spearmint import util
-import Locker
 
 def init(expt_dir, arg_string):
     args = util.unpack_args(arg_string)
@@ -25,7 +24,6 @@ class CMAChooser:
     def _real_init(self, dims, values):
 
         raise NotImplementedError('The CMA chooser is not yet implemented!')
-        self.locker.lock_wait(self.state_pkl)
 
         if os.path.exists(self.state_pkl):
             fh    = open(self.state_pkl, 'r')
@@ -38,7 +36,6 @@ class CMAChooser:
     def __del__(self):
 
         raise NotImplementedError('The CMA chooser is not yet implemented!')
-        self.locker.lock_wait(self.state_pkl)
 
         # Write the hyperparameters out to a Pickle.
         fh = tempfile.NamedTemporaryFile(mode='w', delete=False)
@@ -61,7 +58,6 @@ class CMAChooser:
         cmd = 'mv "%s" "%s"' % (fh.name, self.state_pkl)
         os.system(cmd) # TODO: Should check system-dependent return status.
 
-        self.locker.unlock(self.state_pkl)
 
     def next(self, grid, values, durations, candidates, pending, complete):
 

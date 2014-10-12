@@ -34,7 +34,6 @@ import cPickle
 import multiprocessing
 
 from helpers import *
-from Locker  import *
 import logging
 
 def optimize_pt(c, b, comp, pend, vals, model):
@@ -59,7 +58,6 @@ class GPEIOptChooser:
                  pending_samples=100, noiseless=False, burnin=100,
                  grid_subset=20, use_multiprocessing=True):
         self.cov_func        = getattr(gp, covar)
-        self.locker          = Locker()
         self.state_pkl       = os.path.join(expt_dir, self.__module__ + ".pkl")
         self.stats_file      = os.path.join(expt_dir,
                                    self.__module__ + "_hyperparameters.txt")
@@ -83,7 +81,6 @@ class GPEIOptChooser:
 
 
     def dump_hypers(self):
-        self.locker.lock_wait(self.state_pkl)
 
         # Write the hyperparameters out to a Pickle.
         fh = tempfile.NamedTemporaryFile(mode='w', delete=False)
@@ -99,8 +96,6 @@ class GPEIOptChooser:
         # Use an atomic move for better NFS happiness.
         cmd = 'mv "%s" "%s"' % (fh.name, self.state_pkl)
         os.system(cmd) # TODO: Should check system-dependent return status.
-
-        self.locker.unlock(self.state_pkl)
 
         # Write the hyperparameters out to a human readable file as well
         fh    = open(self.stats_file, 'w')
@@ -167,7 +162,6 @@ class GPEIOptChooser:
         return False
 
     def _real_init(self, dims, values):
-        self.locker.lock_wait(self.state_pkl)
 
         self.randomstate = npr.get_state()
         if os.path.exists(self.state_pkl):
@@ -203,7 +197,6 @@ class GPEIOptChooser:
             self.hyper_samples.append((self.mean, self.noise, self.amp2,
                                        self.ls))
 
-        self.locker.unlock(self.state_pkl)
 
     def cov(self, x1, x2=None):
         if x2 is None:
