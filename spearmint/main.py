@@ -163,14 +163,6 @@ def attempt_dispatch(experiment, expt_dir, chooser, executor, options):
     logging.info("%d candidates   %d pending   %d complete", n_candidates, 
             n_pending, n_complete)
 
-    # Verify that pending jobs are actually running, and add them back to the
-    # candidate set if they have crashed or gotten lost.
-    for job_id in pending:
-        proc_id = expt_grid.get_proc_id(job_id)
-        if not executor.is_proc_alive(job_id, proc_id):
-            logging.info("Set job %d back to pending status." % (job_id))
-            expt_grid.set_candidate(job_id)
-
     # Track the time series of optimization.
     write_trace(expt_dir, best_val, best_job, n_candidates, n_pending, n_complete)
 
@@ -185,10 +177,6 @@ def attempt_dispatch(experiment, expt_dir, chooser, executor, options):
     if n_candidates == 0:
         logging.info("There are no candidates left.  Exiting.")
         return False
-
-    if n_pending >= 1:#options.max_concurrent:
-        logging.info("Maximum number of jobs (%d) pending." % (options.max_concurrent))
-        return True
 
     else:
 
