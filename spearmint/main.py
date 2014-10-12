@@ -77,9 +77,6 @@ def parse_args():
     parser.add_option("--run-job", dest="job",
                       help="Run a job in wrapper mode.",
                       type="string", default="")
-    parser.add_option("--polling-time", dest="polling_time",
-                      help="The time in-between successive polls for results.",
-                      type="float", default=3.0)
     parser.add_option("-v", "--verbose", action="store_true",
                       help="Print verbose debug output.")
 
@@ -125,7 +122,6 @@ def main():
         # This is polling frequency. A higher frequency means that the algorithm
         # picks up results more quickly after they finish, but also significantly
         # increases overhead.
-        #time.sleep(options.polling_time)
         print "looping", current_best, next_values
 
 # TODO:
