@@ -120,12 +120,13 @@ def main():
     experiment = load_experiment(experiment_config)
 
     # Loop until we run out of jobs.
-    while attempt_dispatch(experiment, expt_dir, chooser, executor, options):
+    for current_best, next_values in \
+            attempt_dispatch(experiment, expt_dir, chooser, executor, options):
         # This is polling frequency. A higher frequency means that the algorithm
         # picks up results more quickly after they finish, but also significantly
         # increases overhead.
-        time.sleep(options.polling_time)
-
+        #time.sleep(options.polling_time)
+        print "looping", current_best, next_values
 
 # TODO:
 #  * move check_pending_jobs out of ExperimentGrid, and implement two simple
@@ -141,55 +142,44 @@ def attempt_dispatch(experiment, expt_dir, chooser, executor, options):
                                options.grid_size,
                                options.grid_seed)
 
-    # Print out the current best function value.
-    best_val, best_job = expt_grid.get_best()
-    if best_job >= 0:
-        logging.info("Current best: %f (job %d)" % (best_val, best_job))
-    else:
-        logging.info("Current best: No results returned yet.")
+    next_jobid = 0
 
-    # Gets you everything - NaN for unknown values & durations.
-    grid, values, durations = expt_grid.get_grid()
+    while next_jobid < options.max_finished_jobs:
+        best_val, best_job = expt_grid.get_best()
+        
+        # Gets you everything - NaN for unknown values & durations.
+        grid, values, durations = expt_grid.get_grid()
 
 
-    # Returns lists of indices.
-    candidates = expt_grid.get_candidates()
-    pending    = expt_grid.get_pending()
-    complete   = expt_grid.get_complete()
+        # Returns lists of indices.
+        candidates = expt_grid.get_candidates()
+        pending    = expt_grid.get_pending()
+        complete   = expt_grid.get_complete()
 
-    n_candidates = candidates.shape[0]
-    n_pending    = pending.shape[0]
-    n_complete   = complete.shape[0]
-    logging.info("%d candidates   %d pending   %d complete", n_candidates, 
-            n_pending, n_complete)
+        n_candidates = candidates.shape[0]
+        n_pending    = pending.shape[0]
+        n_complete   = complete.shape[0]
+        logging.info("%d candidates   %d pending   %d complete", n_candidates, 
+                n_pending, n_complete)
 
-    # Track the time series of optimization.
-    write_trace(expt_dir, best_val, best_job, n_candidates, n_pending, n_complete)
+        if n_candidates == 0:
+            logging.info("There are no candidates left.  Exiting.")
+            return
 
-    # Print out the best job results
-    write_best_job(expt_dir, best_val, best_job, expt_grid)
 
-    if n_complete >= options.max_finished_jobs:
-        logging.info("Maximum number of finished jobs (%d) reached."
-                         "Exiting" % options.max_finished_jobs)
-        return False
+        # Track the time series of optimization.
+        write_trace(expt_dir, best_val, best_job, n_candidates, n_pending, n_complete)
 
-    if n_candidates == 0:
-        logging.info("There are no candidates left.  Exiting.")
-        return False
+        # Print out the best job results
+        write_best_job(expt_dir, best_val, best_job, expt_grid)
 
-    else:
-
-        # start a bunch of candidate jobs if possible
-        #to_start = min(options.max_concurrent - n_pending, n_candidates)
-        #logging.info("Trying to start %d jobs" % (to_start))
-        #for i in xrange(to_start):
 
         # Ask the chooser to pick the next candidate
         logging.info("Choosing next candidate... ")
         job_id = chooser.next(grid, values, durations, candidates, pending, complete)
 
-        
+        yield best_val, job_id
+
         # If the job_id is a tuple, then the chooser picked a new job.
         # We have to add this to our grid
         if isinstance(job_id, tuple):
@@ -211,7 +201,7 @@ def attempt_dispatch(experiment, expt_dir, chooser, executor, options):
 
         save_job(job)
         
-        expt_grid.set_submitted(job_id, os.getpid())
+        expt_grid.set_submitted(job_id, next_jobid)
 
         #pid = executor.submit_job(job)
 
@@ -231,20 +221,7 @@ def attempt_dispatch(experiment, expt_dir, chooser, executor, options):
         save_job(job)
         print job
 
-        # 2) job.status = running
-
-        # 3) ExperimentGrid.job_complete(job.expt_dir, job.id,
-        #                            job.value, duration)
-
-        # if pid != None:
-        #     logging.info("submitted - pid = %d", pid)
-        #     expt_grid.set_submitted(job_id, pid)
-        # else:
-        #     logging.info("Failed to submit job!")
-        #     logging.info("Deleting job file.")
-        #     os.unlink(job_file_for(job))
-
-    return True
+        next_jobid += 1
 
 
 def write_trace(expt_dir, best_val, best_job,
