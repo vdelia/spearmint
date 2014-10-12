@@ -162,14 +162,6 @@ def attempt_dispatch(experiment, expt_dir, chooser, executor, options):
             logging.info("There are no candidates left.  Exiting.")
             return
 
-
-        # Track the time series of optimization.
-        write_trace(expt_dir, best_val, best_job, n_candidates, n_pending, n_complete)
-
-        # Print out the best job results
-        write_best_job(expt_dir, best_val, best_job, expt_grid)
-
-
         # Ask the chooser to pick the next candidate
         logging.info("Choosing next candidate... ")
         job_id = chooser.next(grid, values, durations, candidates, pending, complete)
@@ -218,27 +210,6 @@ def attempt_dispatch(experiment, expt_dir, chooser, executor, options):
         print job
 
         next_jobid += 1
-
-
-def write_trace(expt_dir, best_val, best_job,
-                n_candidates, n_pending, n_complete):
-    '''Append current experiment state to trace file.'''
-    trace_fh = open(os.path.join(expt_dir, 'trace.csv'), 'a')
-    trace_fh.write("%d,%f,%d,%d,%d,%d\n"
-                   % (time.time(), best_val, best_job,
-                      n_candidates, n_pending, n_complete))
-    trace_fh.close()
-
-
-def write_best_job(expt_dir, best_val, best_job, expt_grid):
-    '''Write out the best_job_and_result.txt file containing the top results.'''
-
-    best_job_fh = open(os.path.join(expt_dir, 'best_job_and_result.txt'), 'w')
-    best_job_fh.write("Best result: %f\nJob-id: %d\nParameters: \n" %
-                      (best_val, best_job))
-    for best_params in expt_grid.get_params(best_job):
-        best_job_fh.write(str(best_params))
-    best_job_fh.close()
 
 
 def check_experiment_dirs(expt_dir):
