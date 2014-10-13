@@ -54,9 +54,6 @@ from runner          import PythonRunner
 def parse_args():
     parser = optparse.OptionParser(usage="\n\tspearmint [options] <experiment/config.pb>")
 
-    parser.add_option("--max-concurrent", dest="max_concurrent",
-                      help="Maximum number of concurrent jobs.",
-                      type="int", default=1)
     parser.add_option("--max-finished-jobs", dest="max_finished_jobs",
                       type="int", default=10000)
     parser.add_option("--method", dest="chooser_module",
@@ -71,9 +68,6 @@ def parse_args():
     parser.add_option("--grid-seed", dest="grid_seed",
                       help="The seed used to initialize initial grid.",
                       type="int", default=1)
-    parser.add_option("--run-job", dest="job",
-                      help="Run a job in wrapper mode.",
-                      type="string", default="")
     parser.add_option("-v", "--verbose", action="store_true",
                       help="Print verbose debug output.")
 
@@ -87,10 +81,6 @@ def parse_args():
 
 def main():
     (options, args) = parse_args()
-
-    if options.job:
-        job_runner(load_job(options.job))
-        exit(0)
 
     experiment_config = args[0]
     expt_dir  = os.path.dirname(os.path.realpath(experiment_config))
