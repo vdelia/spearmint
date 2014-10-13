@@ -19,8 +19,6 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import optparse
-import tempfile
-import datetime
 import importlib
 import time
 import imp
@@ -129,7 +127,6 @@ def main():
 #  driver classes to handle local execution and SGE execution.
 #  * take cmdline engine arg into account, and submit job accordingly
 
-
 def explore_space_of_candidates(experiment, expt_dir, chooser, executor, options):
    
     # Build the experiment grid.
@@ -176,7 +173,6 @@ def explore_space_of_candidates(experiment, expt_dir, chooser, executor, options
 
         logging.info("selected job %d from the grid", job_id)
 
-        
         # Convert this back into an interpretable job and add metadata.
         job = Job()
         job.id        = job_id
@@ -210,7 +206,6 @@ def explore_space_of_candidates(experiment, expt_dir, chooser, executor, options
         print job
 
         next_jobid += 1
-
 
 def check_experiment_dirs(expt_dir):
     '''Make output and jobs sub directories.'''
