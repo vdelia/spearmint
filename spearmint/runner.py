@@ -8,67 +8,6 @@ from helpers         import *
 
 import logging
 
-def job_runner(job):
-    '''This fn runs in a new process.  Now we are going to do a little
-    bookkeeping and then spin off the actual job that does whatever it is we're
-    trying to achieve.'''
-
-    redirect_output(job_output_file(job))
-    logging.info("Running in wrapper mode for '%s'", job.id)
-
-    ExperimentGrid.job_running(job.expt_dir, job.id)
-
-    # Update metadata and save the job file, which will be read by the job wrappers.
-    job.start_t = int(time.time())
-    job.status  = 'running'
-    save_job(job)
-
-    success    = False
-    start_time = time.time()
-
-    try:
-        run_python_job(job)
-        success = True
-    except:
-        logging.error("Problem running the job:")
-        logging.error(sys.exc_info())
-        logging.error(traceback.print_exc(limit=1000))
-
-    end_time = time.time()
-    duration = end_time - start_time
-
-    # The job output is written back to the job file, so we read it back in to
-    # get the results.
-    job_file = job_file_for(job)
-    job      = load_job(job_file)
-
-    logging.info("Job file reloaded.")
-
-    if not job.HasField("value"):
-        logging.warning("Could not find value in output file.")
-        success = False
-
-    if success:
-        logging.info("Completed successfully in %0.2f seconds. [%f]", 
-                duration, job.value)
-
-        # Update the status for this job.
-        ExperimentGrid.job_complete(job.expt_dir, job.id,
-                                    job.value, duration)
-        job.status = 'complete'
-    else:
-        logging.warning("Job failed in %0.2f seconds", duration)
-
-        # Update the experiment status for this job.
-        ExperimentGrid.job_broken(job.expt_dir, job.id)
-        job.status = 'broken'
-
-    job.end_t    = int(time.time())
-    job.duration = duration
-
-    save_job(job)
-
-
 
 # TODO: change this function to be more flexible when running python jobs
 # regarding the python path, experiment directory, etc...
