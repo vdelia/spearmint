@@ -179,19 +179,14 @@ def explore_space_of_candidates(experiment, expt_dir, chooser, options):
         job.submit_t  = int(time.time())
         job.param.extend(expt_grid.get_params(job_id))
 
-        save_job(job)
-        
         expt_grid.set_submitted(job_id, next_jobid)
-
         expt_grid.set_running(job_id)
         job.start_t = int(time.time())
         job.status  = 'running'
-        save_job(job)
 
         run_python_job(job)
         job.status = 'complete'
 
-        save_job(job)
         duration = time.time() - job.start_t
         expt_grid.set_complete(job_id, job.value, duration)
         job.end_t = int(time.time())
