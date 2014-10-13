@@ -22,14 +22,14 @@ class PythonRunner():
         k = tuple(items)
         return k
         
-    def __call__(self, job):
+    def __call__(self, _id, name, parameters, expt_dir):
         """Run a Python function."""
         # Add experiment directory to the system path.
-        sys.path.append(os.path.realpath(job.expt_dir))
+        sys.path.append(os.path.realpath(expt_dir))
 
         # Convert the PB object into useful parameters.
         params = {}
-        for param in job.param:
+        for param in parameters:
             dbl_vals = param.dbl_val._values
             int_vals = param.int_val._values
             str_vals = param.str_val._values
@@ -48,14 +48,12 @@ class PythonRunner():
 
         if result is None:
             # Load up this module and run
-            module  = __import__(job.name)
-            result = module.main(job.id, params)
+            module  = __import__(name)
+            result = module.main(_id, params)
             self.memoizer[k] = result
 
         else:
             logging.info("Memoized for %s: %s", k, result)
 
         logging.info("Got result %f", result)
-
-        # Store the result.
-        job.value = result
+        return result

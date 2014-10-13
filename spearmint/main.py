@@ -170,31 +170,14 @@ def explore_space_of_candidates(experiment, expt_dir, chooser, options):
 
         logging.info("selected job %d from the grid", job_id)
 
-        # Convert this back into an interpretable job and add metadata.
-        job = Job()
-        job.id        = job_id
-        job.expt_dir  = expt_dir
-        job.name      = experiment.name
-        job.language  = 2
-        job.status    = 'submitted'
-        job.submit_t  = int(time.time())
-        job.param.extend(expt_grid.get_params(job_id))
-
-        print "looping", job.param
         expt_grid.set_submitted(job_id, next_jobid)
         expt_grid.set_running(job_id)
-        job.start_t = int(time.time())
-        job.status  = 'running'
 
-        run_python_job(job)
-        job.status = 'complete'
-
-        duration = time.time() - job.start_t
-        expt_grid.set_complete(job_id, job.value, duration)
-        job.end_t = int(time.time())
-        job.duration = duration
-        save_job(job)
-        print job
+        start_t = time.time()
+        result = run_python_job(job_id, experiment.name,
+                expt_grid.get_params(job_id), expt_dir)
+        duration = time.time() - start_t
+        expt_grid.set_complete(job_id, result, duration)
 
         next_jobid += 1
 
