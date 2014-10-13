@@ -32,7 +32,7 @@ except ImportError: import json
 
 from ExperimentGrid  import *
 from helpers         import *
-from runner          import run_python_job
+from runner          import PythonRunner
 
 
 # There are two things going on here.  There are "experiments", which are
@@ -132,6 +132,7 @@ def explore_space_of_candidates(experiment, expt_dir, chooser, options):
                                options.grid_seed)
 
     next_jobid = 0
+    run_python_job = PythonRunner()
 
     while next_jobid < options.max_finished_jobs:
         best_val, best_job = expt_grid.get_best()
@@ -179,6 +180,7 @@ def explore_space_of_candidates(experiment, expt_dir, chooser, options):
         job.submit_t  = int(time.time())
         job.param.extend(expt_grid.get_params(job_id))
 
+        print "looping", job.param
         expt_grid.set_submitted(job_id, next_jobid)
         expt_grid.set_running(job_id)
         job.start_t = int(time.time())
