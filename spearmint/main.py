@@ -24,7 +24,6 @@ import time
 import imp
 import os
 import sys
-import driver.local
 import logging
 
 try: import simplejson as json
@@ -109,14 +108,11 @@ def main():
     module  = importlib.import_module('chooser.' + options.chooser_module)
     chooser = module.init(expt_dir, options.chooser_args)
 
-    # Load up the job execution driver.
-    executor = driver.local.init()
-
     experiment = load_experiment(experiment_config)
 
     # Loop until we run out of jobs.
     for current_best, next_values, i in \
-            explore_space_of_candidates(experiment, expt_dir, chooser, executor, options):
+            explore_space_of_candidates(experiment, expt_dir, chooser, options):
         # This is polling frequency. A higher frequency means that the algorithm
         # picks up results more quickly after they finish, but also significantly
         # increases overhead.
@@ -127,7 +123,7 @@ def main():
 #  driver classes to handle local execution and SGE execution.
 #  * take cmdline engine arg into account, and submit job accordingly
 
-def explore_space_of_candidates(experiment, expt_dir, chooser, executor, options):
+def explore_space_of_candidates(experiment, expt_dir, chooser, options):
    
     # Build the experiment grid.
     expt_grid = ExperimentGrid(expt_dir,
@@ -186,8 +182,6 @@ def explore_space_of_candidates(experiment, expt_dir, chooser, executor, options
         save_job(job)
         
         expt_grid.set_submitted(job_id, next_jobid)
-
-        #pid = executor.submit_job(job)
 
         expt_grid.set_running(job_id)
         job.start_t = int(time.time())
