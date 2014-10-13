@@ -16,7 +16,7 @@ class PythonRunner():
     def __init__(self):
         self.memoizer = {}
 
-    def cached(self, params):
+    def cache_key(self, params):
         items = [ (k, tuple(v)) for k,v in params.items()]
         items.sort(key=operator.itemgetter(0))
         k = tuple(items)
@@ -43,7 +43,7 @@ class PythonRunner():
             else:
                 raise Exception("Unknown parameter type.")
 
-        k = self.cached(params)
+        k = self.cache_key(params)
         result = self.memoizer.get(k, None)
 
         if result is None:
