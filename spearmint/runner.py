@@ -2,7 +2,6 @@ import sys
 import os
 import traceback
 
-from spearmint_pb2   import *
 from ExperimentGrid  import *
 from helpers         import *
 
