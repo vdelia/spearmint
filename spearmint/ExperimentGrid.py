@@ -27,7 +27,6 @@ import cPickle
 import numpy        as np
 import numpy.random as npr
 
-from spearmint_pb2 import *
 from sobol_lib     import *
 from helpers       import *
 
@@ -221,33 +220,39 @@ class GridMap():
         if u.shape[0] != self.cardinality:
             raise Exception("Hypercube dimensionality is incorrect.")
 
-        params = []
+        params = {}
         index  = 0
         for variable in self.variables:
-            param = Parameter()
-
-            param.name = variable['name']
+            name = variable['name']
+            values = None
 
             if variable['type'] == 'int':
+                v = []
                 for dd in xrange(variable['size']):
-                    param.int_val.append(variable['min'] + self._index_map(u[index], variable['max']-variable['min']+1))
+                    v.append(variable['min'] + self._index_map(u[index], variable['max']-variable['min']+1))
                     index += 1
+                values = np.array(v, dtype=int)
 
             elif variable['type'] == 'float':
+                v = []
                 for dd in xrange(variable['size']):
-                    param.dbl_val.append(variable['min'] + u[index]*(variable['max']-variable['min']))
+                    v.append(variable['min'] + u[index]*(variable['max']-variable['min']))
                     index += 1
+                values = np.array(v)
 
             elif variable['type'] == 'enum':
+                v = []
                 for dd in xrange(variable['size']):
                     ii = self._index_map(u[index], len(variable['options']))
                     index += 1
-                    param.str_val.append(variable['options'][ii])
+                    v.append(variable['options'][ii])
+                values = v
 
             else:
                 raise Exception("Unknown parameter type.")
 
-            params.append(param)
+            assert name not in params, "multiple definitions of %s" % name
+            params[name] = values
 
         return params
 

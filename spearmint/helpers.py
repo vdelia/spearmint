@@ -3,20 +3,16 @@ import sys
 import subprocess
 import tempfile
 
-from google.protobuf import text_format
-from spearmint_pb2   import *
 import imp
 
 def sh(cmd):
     '''Run a shell command (blocking until completion).'''
     subprocess.check_call(cmd, shell=True)
 
-
 def check_dir(path):
     '''Create a directory if it doesn't exist.'''
     if not os.path.exists(path):
         os.mkdir(path)
-
 
 def grid_for(job):
     return os.path.join(job.expt_dir, 'expt-grid.pkl')
