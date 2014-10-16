@@ -83,40 +83,48 @@ def main():
     (options, args) = parse_args()
 
     experiment_config = args[0]
-    expt_dir  = os.path.dirname(os.path.realpath(experiment_config))
+    working_dir  = os.path.dirname(os.path.realpath(experiment_config))
     logging.info("Using experiment configuration: " + experiment_config)
-    logging.info("experiment dir: " + expt_dir)
+    logging.info("experiment dir: " + working_dir)
 
-    if not os.path.exists(expt_dir):
+    if not os.path.exists(working_dir):
         logging.info("Cannot find experiment directory '%s'. "
-            "Aborting." % (expt_dir))
+            "Aborting." % working_dir)
         sys.exit(-1)
 
-    check_experiment_dirs(expt_dir)
+    check_experiment_dirs(working_dir)
 
     # Load up the chooser module.
     module  = importlib.import_module('chooser.' + options.chooser_module)
-    chooser = module.init(expt_dir, options.chooser_args)
+    chooser = module.init(working_dir, options.chooser_args)
 
     experiment = load_experiment(experiment_config)
-    optimize(experiment, expt_dir, chooser, options)
 
-def optimize(experiment, working_directory, chooser, options):
+    sys.path.append(os.path.realpath(os.path.dirname(experiment_config)))
+    module  = __import__(experiment.name)
+    objective_function = module.main
+    optimize(experiment, objective_function, working_dir, chooser, options)
+
+
+def optimize(experiment, objective_function, working_directory,
+        chooser, options):
     # Loop until we run out of jobs.
     for current_best, best_job, best_params, _next in \
-            explore_space_of_candidates(experiment, 
-                    working_directory, 
-                    chooser, 
+            explore_space_of_candidates(experiment,
+                    objective_function,
+                    working_directory,
+                    chooser,
                     grid_size=options.grid_size,
                     grid_seed=options.grid_seed,
                     max_finished_jobs=options.max_finished_jobs):
         # This is polling frequency. A higher frequency means that the algorithm
         # picks up results more quickly after they finish, but also significantly
         # increases overhead.
-        print "looping", current_best, best_job, best_params, _next
+        logging.info("best value: %s, best_params: %s", current_best, best_params)
+    return current_best, best_params
 
-
-def explore_space_of_candidates(experiment, expt_dir, chooser,
+def explore_space_of_candidates(experiment, objective_function,
+        expt_dir, chooser,
         grid_size=1000,
         grid_seed=1,
         max_finished_jobs=100):
@@ -168,7 +176,7 @@ def explore_space_of_candidates(experiment, expt_dir, chooser,
         expt_grid.set_running(job_id)
 
         start_t = time.time()
-        result = run_python_job(job_id, experiment.name,
+        result = run_python_job(job_id, objective_function,
                 expt_grid.get_params(job_id), expt_dir)
         duration = time.time() - start_t
         expt_grid.set_complete(job_id, result, duration)

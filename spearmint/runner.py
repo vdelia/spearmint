@@ -21,7 +21,7 @@ class PythonRunner():
         k = tuple(items)
         return k
         
-    def __call__(self, _id, name, parameters, expt_dir):
+    def __call__(self, _id, objective_function, parameters, expt_dir):
         """Run a Python function."""
         # Add experiment directory to the system path.
         sys.path.append(os.path.realpath(expt_dir))
@@ -31,8 +31,7 @@ class PythonRunner():
 
         if result is None:
             # Load up this module and run
-            module  = __import__(name)
-            result = module.main(_id, parameters)
+            result = objective_function(_id, parameters)
             self.memoizer[k] = result
 
         else:
