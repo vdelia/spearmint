@@ -100,18 +100,20 @@ def main():
 
     experiment = load_experiment(experiment_config)
 
+    optimize(experiment, expt_dir, chooser, options)
+
+def optimize(experiment, working_directory, chooser, options):
     # Loop until we run out of jobs.
     for current_best, best_job, best_params, _next in \
-            explore_space_of_candidates(experiment, expt_dir, chooser, options):
+            explore_space_of_candidates(experiment, 
+                    working_directory, 
+                    chooser, 
+                    options):
         # This is polling frequency. A higher frequency means that the algorithm
         # picks up results more quickly after they finish, but also significantly
         # increases overhead.
         print "looping", current_best, best_job, best_params, _next
 
-# TODO:
-#  * move check_pending_jobs out of ExperimentGrid, and implement two simple
-#  driver classes to handle local execution and SGE execution.
-#  * take cmdline engine arg into account, and submit job accordingly
 
 def explore_space_of_candidates(experiment, expt_dir, chooser, options):
    
