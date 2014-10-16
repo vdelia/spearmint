@@ -21,10 +21,10 @@ class PythonRunner():
         k = tuple(items)
         return k
         
-    def __call__(self, _id, objective_function, parameters, expt_dir):
+    def __call__(self, _id, objective_function, parameters, working_directory):
         """Run a Python function."""
         # Add experiment directory to the system path.
-        sys.path.append(os.path.realpath(expt_dir))
+        sys.path.append(os.path.realpath(working_directory))
 
         k = self.cache_key(parameters)
         result = self.memoizer.get(k, None)

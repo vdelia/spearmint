@@ -124,13 +124,13 @@ def optimize(experiment, objective_function, working_directory,
     return current_best, best_params
 
 def explore_space_of_candidates(experiment, objective_function,
-        expt_dir, chooser,
+        working_directory, chooser,
         grid_size=1000,
         grid_seed=1,
         max_finished_jobs=100):
    
     # Build the experiment grid.
-    expt_grid = ExperimentGrid(expt_dir,
+    expt_grid = ExperimentGrid(working_directory,
                                experiment.variables, grid_size, grid_seed)
 
     next_jobid = 0
@@ -177,19 +177,19 @@ def explore_space_of_candidates(experiment, objective_function,
 
         start_t = time.time()
         result = run_python_job(job_id, objective_function,
-                expt_grid.get_params(job_id), expt_dir)
+                expt_grid.get_params(job_id), working_directory)
         duration = time.time() - start_t
         expt_grid.set_complete(job_id, result, duration)
 
         next_jobid += 1
 
-def check_experiment_dirs(expt_dir):
+def check_experiment_dirs(working_directory):
     '''Make output and jobs sub directories.'''
 
-    output_subdir = os.path.join(expt_dir, 'output')
+    output_subdir = os.path.join(working_directory, 'output')
     check_dir(output_subdir)
 
-    job_subdir = os.path.join(expt_dir, 'jobs')
+    job_subdir = os.path.join(working_directory, 'jobs')
     check_dir(job_subdir)
 
 if __name__=='__main__':
