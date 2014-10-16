@@ -99,7 +99,6 @@ def main():
     chooser = module.init(expt_dir, options.chooser_args)
 
     experiment = load_experiment(experiment_config)
-
     optimize(experiment, expt_dir, chooser, options)
 
 def optimize(experiment, working_directory, chooser, options):
@@ -108,25 +107,28 @@ def optimize(experiment, working_directory, chooser, options):
             explore_space_of_candidates(experiment, 
                     working_directory, 
                     chooser, 
-                    options):
+                    grid_size=options.grid_size,
+                    grid_seed=options.grid_seed,
+                    max_finished_jobs=options.max_finished_jobs):
         # This is polling frequency. A higher frequency means that the algorithm
         # picks up results more quickly after they finish, but also significantly
         # increases overhead.
         print "looping", current_best, best_job, best_params, _next
 
 
-def explore_space_of_candidates(experiment, expt_dir, chooser, options):
+def explore_space_of_candidates(experiment, expt_dir, chooser,
+        grid_size=1000,
+        grid_seed=1,
+        max_finished_jobs=100):
    
     # Build the experiment grid.
     expt_grid = ExperimentGrid(expt_dir,
-                               experiment.variables,
-                               options.grid_size,
-                               options.grid_seed)
+                               experiment.variables, grid_size, grid_seed)
 
     next_jobid = 0
     run_python_job = PythonRunner()
 
-    while next_jobid < options.max_finished_jobs:
+    while next_jobid < max_finished_jobs:
         best_val, best_job = expt_grid.get_best()
  
         # Gets you everything - NaN for unknown values & durations.
