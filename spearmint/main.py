@@ -101,12 +101,12 @@ def main():
     experiment = load_experiment(experiment_config)
 
     # Loop until we run out of jobs.
-    for current_best, next_values, i in \
+    for current_best, best_job, best_params, _next in \
             explore_space_of_candidates(experiment, expt_dir, chooser, options):
         # This is polling frequency. A higher frequency means that the algorithm
         # picks up results more quickly after they finish, but also significantly
         # increases overhead.
-        print "looping", current_best, next_values, i
+        print "looping", current_best, best_job, best_params, _next
 
 # TODO:
 #  * move check_pending_jobs out of ExperimentGrid, and implement two simple
@@ -126,7 +126,7 @@ def explore_space_of_candidates(experiment, expt_dir, chooser, options):
 
     while next_jobid < options.max_finished_jobs:
         best_val, best_job = expt_grid.get_best()
-        
+ 
         # Gets you everything - NaN for unknown values & durations.
         grid, values, durations = expt_grid.get_grid()
 
@@ -150,7 +150,7 @@ def explore_space_of_candidates(experiment, expt_dir, chooser, options):
         logging.info("Choosing next candidate... ")
         job_id = chooser.next(grid, values, durations, candidates, pending, complete)
 
-        yield best_val, job_id, next_jobid
+        yield best_val, best_job, expt_grid.get_params(best_job), job_id
 
         # If the job_id is a tuple, then the chooser picked a new job.
         # We have to add this to our grid
