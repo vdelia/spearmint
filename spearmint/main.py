@@ -30,9 +30,9 @@ try: import simplejson as json
 except ImportError: import json
 
 
-from ExperimentGrid  import *
-from helpers         import *
-from runner          import PythonRunner
+from spearmint.ExperimentGrid  import *
+from spearmint.helpers         import *
+from spearmint.runner          import PythonRunner
 
 
 # There are two things going on here.  There are "experiments", which are

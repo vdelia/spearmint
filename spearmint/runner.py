@@ -2,8 +2,8 @@ import sys
 import os
 import traceback
 
-from ExperimentGrid  import *
-from helpers         import *
+from spearmint.ExperimentGrid  import *
+from spearmint.helpers         import *
 
 import logging
 import operator

@@ -33,7 +33,7 @@ import scipy.optimize as spo
 import cPickle
 import multiprocessing
 
-from helpers import *
+from spearmint.helpers import *
 import logging
 
 def optimize_pt(c, b, comp, pend, vals, model):
