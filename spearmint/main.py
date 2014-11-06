@@ -176,12 +176,16 @@ def explore_space_of_candidates(experiment, objective_function,
         expt_grid.set_running(job_id)
 
         start_t = time.time()
-        result = run_python_job(job_id, objective_function,
+        result, memoized = run_python_job(job_id, objective_function,
                 expt_grid.get_params(job_id), working_directory)
         duration = time.time() - start_t
         expt_grid.set_complete(job_id, result, duration)
 
         next_jobid += 1
+
+        if memoized:
+            max_finished_jobs += 1
+
 
 def check_experiment_dirs(working_directory):
     '''Make output and jobs sub directories.'''

@@ -28,6 +28,7 @@ class PythonRunner():
 
         k = self.cache_key(parameters)
         result = self.memoizer.get(k, None)
+        usememoized = False
 
         if result is None:
             # Load up this module and run
@@ -35,7 +36,9 @@ class PythonRunner():
             self.memoizer[k] = result
 
         else:
+            usememoized = True
             logging.info("Memoized for %s: %s", k, result)
 
         logging.info("Got result %f", result)
-        return result
+        return result, usememoized
+
